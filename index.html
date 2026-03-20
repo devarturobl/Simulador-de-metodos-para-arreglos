@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recurso Didáctico: Estructuras de Datos - Arreglos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .array-cell { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .highlight { animation: pulse-blue 1.5s infinite; }
+        @keyframes pulse-blue {
+            0%, 100% { border-color: #3b82f6; box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.5); }
+            50% { border-color: #60a5fa; box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        }
+        .mono { font-family: 'Fira Code', monospace; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900">Visualizador de Arreglos (Arrays)</h1>
+            <h2>Simulador desarrollado para la materia Estructura de Datos</h2>
+            <p class="text-slate-600">Unidad 3: Estructuras lineales</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Panel de Control -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Operaciones</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Valor del Elemento</label>
+                        <input type="text" id="inputValue" placeholder="Ej. 42" 
+                               class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-mono">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="pushArray()" 
+                                title="Agrega un elemento al final del arreglo"
+                                class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                            .push(val)
+                        </button>
+                        <button onclick="popArray()" 
+                                title="Elimina el último elemento del arreglo"
+                                class="bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition-colors">
+                            .pop()
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="unshiftArray()" 
+                                title="Agrega un elemento al inicio del arreglo (desplaza el resto)"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                            .unshift(val)
+                        </button>
+                        <button onclick="shiftArray()" 
+                                title="Elimina el primer elemento del arreglo (desplaza el resto)"
+                                class="bg-orange-50 hover:bg-orange-100 text-orange-600 py-2 rounded-lg text-sm font-medium transition-colors">
+                            .shift()
+                        </button>
+                    </div>
+
+                    <div class="pt-4 border-t">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Buscar por Índice</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="inputIndex" placeholder="i" class="w-20 px-3 py-2 rounded-lg border border-slate-300 outline-none font-mono">
+                            <button onclick="accessArray()" 
+                                    title="Accede directamente al valor almacenado en este índice"
+                                    class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                                Acceder: [i]
+                            </button>
+                        </div>
+                    </div>
+
+                    <button onclick="clearArray()" 
+                            title="Vacía todos los elementos del arreglo"
+                            class="w-full text-slate-400 hover:text-red-500 text-xs font-medium transition-colors pt-4">
+                        Limpiar Arreglo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualización -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 min-h-[200px] flex flex-col justify-center">
+                    <div id="arrayContainer" class="flex flex-wrap gap-4 justify-center">
+                        <!-- Celdas del arreglo generadas por JS -->
+                    </div>
+                </div>
+
+                <!-- Consola de Explicación -->
+                <div class="bg-slate-900 rounded-2xl p-6 text-slate-300 shadow-lg">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-xs font-mono text-slate-500">Log de ejecución</span>
+                    </div>
+                    <div id="explanationLog" class="font-mono text-sm space-y-2">
+                        <p class="text-blue-400">// El arreglo está vacío. ¡Agrega elementos para comenzar!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-8 text-center text-slate-400 text-sm">
+            Material elaborado en el ITSSNA por MTI. José Arturo Bustamante Lazcano Semestre agosto - diciembre 2025.
+        </footer>
+    </div>
+
+    <script>
+        let arrayData = ["HTML", "CSS", "JS"];
+        const container = document.getElementById('arrayContainer');
+        const log = document.getElementById('explanationLog');
+        const valInput = document.getElementById('inputValue');
+        const idxInput = document.getElementById('inputIndex');
+
+        function render() {
+            container.innerHTML = '';
+            arrayData.forEach((item, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'array-cell flex flex-col items-center';
+                cell.id = `cell-${index}`;
+                cell.innerHTML = `
+                    <div class="text-[10px] font-bold text-slate-400 mb-1 mono">Índice: ${index}</div>
+                    <div class="w-16 h-16 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center text-slate-800 font-bold shadow-sm text-sm overflow-hidden px-1">
+                        ${item}
+                    </div>
+                    <div class="mt-1 text-[9px] text-slate-300 mono">0x${(index * 4).toString(16).toUpperCase().padStart(2, '0')}</div>
+                `;
+                container.appendChild(cell);
+            });
+        }
+
+        function writeLog(message, color = 'text-slate-300') {
+            const p = document.createElement('p');
+            p.className = color;
+            p.innerHTML = `> ${message}`;
+            log.prepend(p);
+            if (log.children.length > 5) log.lastChild.remove();
+        }
+
+        function pushArray() {
+            const val = valInput.value || Math.floor(Math.random() * 100);
+            arrayData.push(val);
+            writeLog(`array.push("${val}"); // Agregado al final. Tamaño actual: ${arrayData.length}`, 'text-green-400');
+            render();
+            valInput.value = '';
+        }
+
+        function popArray() {
+            if (arrayData.length === 0) return writeLog("Error: El arreglo ya está vacío.", "text-red-400");
+            const val = arrayData.pop();
+            writeLog(`array.pop(); // Eliminado "${val}" del final.`, 'text-orange-400');
+            render();
+        }
+
+        function unshiftArray() {
+            const val = valInput.value || "NEW";
+            arrayData.unshift(val);
+            writeLog(`array.unshift("${val}"); // Agregado al inicio. Los índices se desplazaron.`, 'text-indigo-400');
+            render();
+            valInput.value = '';
+        }
+
+        function shiftArray() {
+            if (arrayData.length === 0) return writeLog("Error: Vacío.", "text-red-400");
+            const val = arrayData.shift();
+            writeLog(`array.shift(); // Eliminado "${val}" del inicio.`, 'text-orange-400');
+            render();
+        }
+
+        function accessArray() {
+            const idx = parseInt(idxInput.value);
+            if (idx >= 0 && idx < arrayData.length) {
+                const cells = document.querySelectorAll('.array-cell div:nth-child(2)');
+                cells.forEach(c => c.classList.remove('border-blue-500', 'highlight'));
+                
+                const target = document.getElementById(`cell-${idx}`).children[1];
+                target.classList.add('border-blue-500', 'highlight');
+                writeLog(`Valor en array[${idx}] es "${arrayData[idx]}"`, 'text-blue-400');
+            } else {
+                writeLog(`Error: Índice ${idx} fuera de rango (0 a ${arrayData.length - 1})`, 'text-red-400');
+            }
+        }
+
+        function clearArray() {
+            arrayData = [];
+            writeLog("Arreglo reiniciado.", "text-slate-500");
+            render();
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
